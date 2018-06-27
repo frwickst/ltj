@@ -12,3 +12,6 @@ htmlcov/
 
 # environment file
 .env
+
+# dev media directory
+media/
