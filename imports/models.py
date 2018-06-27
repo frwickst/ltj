@@ -3,11 +3,16 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from .validators import ZippedShapefilesValidator
+
 
 class ShpImport(models.Model):
     shapefiles = models.FileField(
         _('shapefiles'),
-        validators=[FileExtensionValidator(allowed_extensions=['zip'])],
+        validators=[
+            FileExtensionValidator(allowed_extensions=['zip']),
+            ZippedShapefilesValidator(),
+        ],
         help_text=_('Zipped shapefiles that contains .shp, .shx and .dbf files with a common filename prefix')
     )
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('created by'))
