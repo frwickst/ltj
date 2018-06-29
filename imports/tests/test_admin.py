@@ -1,4 +1,5 @@
 import os
+from unittest.mock import patch
 
 from django.contrib.admin import AdminSite
 from django.test import TestCase, RequestFactory
@@ -16,7 +17,8 @@ class TestShpImportAdmin(TestCase):
         self.site = AdminSite()
         self.factory = RequestFactory()
 
-    def test_save_model(self):
+    @patch('imports.importers.ShapefileImporter.import_features')
+    def test_save_model(self, mock_import):
         shp_import_admin = ShpImportAdmin(ShpImport, self.site)
         request = self.factory.get('/fake-url/')
         request.user = self.user
@@ -24,5 +26,6 @@ class TestShpImportAdmin(TestCase):
         shp_import = ShpImportFactory.build()
         shp_import_admin.save_model(request, shp_import, None, None)
         self.assertEqual(shp_import.created_by, self.user)
+        mock_import.assert_called_once_with(shp_import.shapefiles)
 
         os.remove(shp_import.shapefiles.path)
