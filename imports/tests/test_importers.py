@@ -20,8 +20,7 @@ class TestShapefileImporter(TestCase):
 
         self.feature_1.name = 'new name'
         filename = ZippedShapefilesGenerator.create_shapefiles([self.feature_1, self.feature_2])
-        importer = ShapefileImporter(filename)
-        importer.import_features()
+        ShapefileImporter.import_features(filename)
         os.remove(filename)
 
         # new feature created

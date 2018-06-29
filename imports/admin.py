@@ -13,7 +13,7 @@ class ShpImportAdmin(admin.ModelAdmin):
     @transaction.atomic
     def save_model(self, request, obj, form, change):
         if not obj.pk:
-            importer = ShapefileImporter(obj.shapefiles)
-            importer.import_features()  # only do imports when creating new instances
+            # only do imports when creating new instances
+            ShapefileImporter.import_features(obj.shapefiles)
             obj.created_by = request.user
         obj.save()

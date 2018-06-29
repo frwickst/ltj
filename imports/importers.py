@@ -44,20 +44,24 @@ class ShapefileImporter:
         'pinta_ala': 'area',
     }
 
-    def __init__(self, zipped_shapefile):
-        with zipfile.ZipFile(zipped_shapefile) as zfile:
-            dbf, shp, shx = sorted([name for name in zfile.namelist() if name.endswith(self.required_extensions)])
+    @classmethod
+    def import_features(cls, zipped_shapefiles):
+        shp_reader = cls._get_shp_reader(zipped_shapefiles)
+        fields = [cls.field_mapping[shape_field[0]] for shape_field in shp_reader.fields[1:]]
+        for shape_record in shp_reader.iterShapeRecords():
+            cls._import_feature(fields, shape_record)
+
+    @classmethod
+    def _get_shp_reader(cls, zipped_shapefiles):
+        with zipfile.ZipFile(zipped_shapefiles) as zfile:
+            dbf, shp, shx = sorted([name for name in zfile.namelist() if name.endswith(cls.required_extensions)])
             with zfile.open(dbf) as dbf, zfile.open(shp) as shp, zfile.open(shx) as shx:
-                self.shp_reader = shapefile.Reader(shp=shp, shx=shx, dbf=dbf)
-        self.fields = [self.field_mapping[shape_field[0]] for shape_field in self.shp_reader.fields[1:]]
+                return shapefile.Reader(shp=shp, shx=shx, dbf=dbf)
 
-    def import_features(self):
-        for shape_record in self.shp_reader.iterShapeRecords():
-            self._import_feature(shape_record)
-
-    def _import_feature(self, shape_record):
-        feature_data = dict(zip(self.fields, shape_record.record))
-        feature_data['geometry'] = self._get_feature_geometry(shape_record.shape)
+    @classmethod
+    def _import_feature(cls, fields, shape_record):
+        feature_data = dict(zip(fields, shape_record.record))
+        feature_data['geometry'] = cls._get_feature_geometry(shape_record.shape)
 
         feature_id = feature_data.pop('id', None)
         try:
@@ -68,6 +72,7 @@ class ShapefileImporter:
         except Feature.DoesNotExist:
             Feature.objects.create(**feature_data)
 
-    def _get_feature_geometry(self, shape):
+    @classmethod
+    def _get_feature_geometry(cls, shape):
         geojson = json.dumps(shape.__geo_interface__)
         return GEOSGeometry(geojson, srid=settings.SRID)
