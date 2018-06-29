@@ -25,6 +25,10 @@ class ShapefileImporter:
 
     - The shapefile may omit some of the fields that are not required by
     the Feature model.
+
+    - If a feature in shapefiles has an id that already exists in database,
+    then the importer will update the feature, otherwise it will create
+    new ones.
     """
     required_extensions = ('.shp', '.shx', '.dbf')
     field_mapping = {
