@@ -1,5 +1,7 @@
 from django.contrib import admin
+from django.contrib import messages
 from django.db import transaction
+from django.utils.translation import ugettext as _
 
 from .models import ShpImport
 from .importers import ShapefileImporter
@@ -14,6 +16,7 @@ class ShpImportAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not obj.pk:
             # only do imports when creating new instances
-            ShapefileImporter.import_features(obj.shapefiles)
+            num_features = ShapefileImporter.import_features(obj.shapefiles)
+            messages.add_message(request, messages.INFO, _('{0} features are imported').format(num_features))
             obj.created_by = request.user
         obj.save()

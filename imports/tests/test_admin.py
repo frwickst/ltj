@@ -17,8 +17,9 @@ class TestShpImportAdmin(TestCase):
         self.site = AdminSite()
         self.factory = RequestFactory()
 
+    @patch('imports.admin.messages.add_message')
     @patch('imports.importers.ShapefileImporter.import_features')
-    def test_save_model(self, mock_import):
+    def test_save_model(self, mock_import, mock_add_message):
         shp_import_admin = ShpImportAdmin(ShpImport, self.site)
         request = self.factory.get('/fake-url/')
         request.user = self.user
@@ -27,5 +28,6 @@ class TestShpImportAdmin(TestCase):
         shp_import_admin.save_model(request, shp_import, None, None)
         self.assertEqual(shp_import.created_by, self.user)
         mock_import.assert_called_once_with(shp_import.shapefiles)
+        mock_add_message.assert_called()
 
         os.remove(shp_import.shapefiles.path)

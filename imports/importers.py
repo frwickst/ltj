@@ -54,6 +54,7 @@ class ShapefileImporter:
         fields = [cls.field_mapping[shape_field[0]] for shape_field in shp_reader.fields[1:]]
         for shape_record in shp_reader.iterShapeRecords():
             cls._import_feature(fields, shape_record)
+        return shp_reader.numRecords
 
     @classmethod
     def _get_shp_reader(cls, zipped_shapefiles):
